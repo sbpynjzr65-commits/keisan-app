@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>毎日5分 基礎計算チャレンジ</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#172033;background:#f5f7fb}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:760px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 6px 24px #0001;margin-bottom:14px}
+h1{font-size:1.6rem;margin:.2em 0}.sub,.note{color:#667085}.hidden{display:none}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
+button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 16px;background:#2457d6;color:#fff;font-weight:800;cursor:pointer}
+button.secondary{background:#e9eefb;color:#24324a}button.choice{font-size:1.2rem;min-height:70px}
+button.selected{outline:4px solid #172033;background:#173f9f;transform:scale(.98)}
+input.name{width:100%;font-size:1.15rem;padding:13px;border:2px solid #cfd7e6;border-radius:12px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:#f5f7fb;padding:10px;border-radius:12px;text-align:center}
+.timer{font-variant-numeric:tabular-nums;font-weight:900}.big{font-size:2.2rem;font-weight:900;text-align:center;margin:24px 0}
+.answer{display:flex;gap:10px;align-items:center;justify-content:center}
+.answer input{width:150px;font-size:2rem;padding:12px;border:3px solid #cfd7e6;border-radius:14px;text-align:center}
+.answer input:focus{border-color:#2457d6;outline:none}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}.resultTitle{text-align:center;font-size:1.5rem;font-weight:900}
+.rank{text-align:center;font-size:2rem;font-weight:900;margin:14px 0}.wrong{margin-top:18px}.wrong div{padding:8px 0;border-bottom:1px solid #eee}
+.bar{height:10px;background:#e8edf5;border-radius:99px;overflow:hidden;margin-top:10px}.bar>i{display:block;height:100%;background:#2457d6;width:0}
+@media(max-width:520px){.grid{grid-template-columns:1fr 1fr}.big{font-size:1.8rem}.answer input{width:120px}}
+</style>
+</head>
+<body><div class="wrap">
+<div class="card" id="setup">
+<h1>毎日5分 基礎計算チャレンジ</h1>
+<p class="sub">毎日5分。正確に、少しずつ速く。</p>
+<label><b>なまえ</b></label>
+<input id="name" class="name" maxlength="20" placeholder="なまえを入力">
+<h3>① 計算をえらぶ</h3>
+<div class="grid" id="types">
+<button type="button" class="choice" data-type="add" onclick="selectType(this,'add')">たし算</button>
+<button type="button" class="choice" data-type="sub" onclick="selectType(this,'sub')">ひき算</button>
+<button type="button" class="choice" data-type="mul" onclick="selectType(this,'mul')">かけ算</button>
+<button type="button" class="choice" data-type="div" onclick="selectType(this,'div')">わり算</button>
+</div>
+<h3>② モードをえらぶ</h3>
+<div class="grid" id="modes">
+<button type="button" class="choice" data-mode="five" onclick="selectMode(this,'five')">5分チャレンジ</button>
+<button type="button" class="choice" data-mode="hundred" onclick="selectMode(this,'hundred')">100問チャレンジ</button>
+</div>
+<p class="note"><b>スタートする前に、キーボードを「英数モード」にしてください。</b><br>スタート後は、数字キーと Enter キーで進みます。まちがえて入力したときは Backspace / Delete で直せます。</p>
+<div class="row"><button id="start">スタート</button></div>
+</div>
+
+<div class="card hidden" id="play">
+<div class="stats">
+<div class="stat"><small>問題</small><br><b id="pos">1/100</b></div>
+<div class="stat"><small id="timeLabel">のこり時間</small><br><b class="timer" id="time">05:00</b></div>
+<div class="stat"><small>モード</small><br><b id="modeLabel"></b></div>
+</div>
+<div class="bar"><i id="progress"></i></div>
+<div class="big" id="problem"></div>
+<div class="answer" id="singleAnswer"><input id="ans" type="text" inputmode="numeric" autocomplete="off" placeholder="答え"></div>
+<div class="answer hidden" id="divisionAnswer">
+<input id="q" type="text" inputmode="numeric" autocomplete="off" placeholder="商"><b>あまり</b><input id="r" type="text" inputmode="numeric" autocomplete="off" placeholder="あまり">
+</div>
+<p class="note" style="text-align:center">途中では○×を出しません。そのまま続けましょう。</p>
+<div class="row"><button class="secondary" id="quit">ここで終了</button></div>
+</div>
+
+<div class="card hidden" id="result">
+<div class="resultTitle" id="resultTitle"></div>
+<div class="rank" id="rank"></div>
+<div class="big" id="scoreText"></div>
+<p id="detail" style="text-align:center"></p>
+<div class="wrong" id="wrong"></div>
+<div class="row"><button id="again">もう一度</button><button class="secondary" id="back">最初の画面へ</button></div>
+<p class="note" style="text-align:center">必要なら、この画面をスクリーンショットで残せます。</p>
+</div>
+</div>
+
+<script>
+const DIV_BANK=[[53,9],[55,8],[61,7],[62,8],[70,9],[41,7],[44,9],[50,9],[51,9],[52,9],[26,9],[30,9],[31,9],[33,9],[40,6],[15,8],[20,3],[20,9],[22,6],[23,8],[10,3],[10,8],[11,6],[12,7],[13,8],[54,7],[60,7],[61,8],[62,9],[71,8],[41,9],[50,6],[51,6],[52,6],[53,6],[30,4],[31,4],[32,7],[34,7],[40,7],[15,9],[20,6],[21,6],[22,8],[23,9],[10,4],[10,9],[11,7],[12,8],[13,9],[54,8],[60,8],[61,9],[63,8],[71,9],[42,9],[50,7],[51,7],[52,7],[53,7],[30,7],[31,7],[32,9],[34,9],[40,9],[16,9],[20,7],[21,8],[22,9],[24,9],[10,6],[11,3],[11,8],[12,9],[14,8],[55,7],[60,9],[62,7],[70,8],[80,9],[43,9],[50,8],[51,8],[52,8],[53,8],[30,8],[31,8],[33,7],[35,9],[41,6],[17,9],[20,8],[21,9],[23,6],[25,9],[10,7],[11,4],[11,9],[13,7],[14,9]];
+
+const $=id=>document.getElementById(id);
+let type=null, mode=null, questions=[], idx=0, answers=[], startAt=0, timer=null, finished=false;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function fmt(sec){sec=Math.max(0,Math.floor(sec));return String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0')}
+function dateJP(){const d=new Date();return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`}
+function typeName(t){return {add:"たし算",sub:"ひき算",mul:"かけ算",div:"わり算"}[t]}
+
+function addPool(){
+ let a=[]; for(let tens=1;tens<=9;tens++)for(let ones=1;ones<=9;ones++)for(let b=1;b<=9;b++)if(ones+b>=10)a.push({a:tens*10+ones,b,op:"+",answer:tens*10+ones+b});
+ return a;
+}
+function subPool(){
+ let a=[]; for(let tens=1;tens<=9;tens++)for(let ones=0;ones<=8;ones++)for(let b=ones+1;b<=9;b++)a.push({a:tens*10+ones,b,op:"−",answer:tens*10+ones-b});
+ return a;
+}
+function mulPool(){
+ let a=[]; for(let x=0;x<=9;x++)for(let y=0;y<=9;y++)a.push({a:x,b:y,op:"×",answer:x*y});
+ return a;
+}
+function divPool(){
+ return DIV_BANK.map(([a,b])=>({a,b,op:"÷",q:Math.floor(a/b),r:a%b}));
+}
+function makeQuestions(){
+ let pool=type==="add"?addPool():type==="sub"?subPool():type==="mul"?mulPool():divPool();
+ // 100問を基本にし、候補が十分あるものは重複なし。毎回順番を変える。
+ return shuffle(pool.slice()).slice(0,100);
+}
+
+function selectType(btn,value){
+ type=value;
+ var buttons=document.querySelectorAll("[data-type]");
+ for(var i=0;i<buttons.length;i++) buttons[i].classList.remove("selected");
+ btn.classList.add("selected");
+}
+function selectMode(btn,value){
+ mode=value;
+ var buttons=document.querySelectorAll("[data-mode]");
+ for(var i=0;i<buttons.length;i++) buttons[i].classList.remove("selected");
+ btn.classList.add("selected");
+}
+
+function start(){
+ if(!type||!mode){alert("計算とモードをえらんでください。");return}
+ const name=$("name").value.trim(); if(name)localStorage.setItem("keisanName",name);
+ questions=makeQuestions(); idx=0; answers=[]; finished=false; startAt=Date.now();
+ $("setup").classList.add("hidden");$("result").classList.add("hidden");$("play").classList.remove("hidden");
+ $("modeLabel").textContent=mode==="five"?"5分":"100問";
+ $("timeLabel").textContent=mode==="five"?"のこり時間":"経過時間";
+ show(); updateTime(); timer=setInterval(updateTime,200);
+}
+function show(){
+ if(idx>=questions.length){finish("complete");return}
+ const p=questions[idx]; $("problem").textContent=`${p.a} ${p.op} ${p.b} = ?`;
+ $("pos").textContent=`${idx+1}/100`; $("progress").style.width=(idx/100*100)+"%";
+ const div=type==="div"; $("singleAnswer").classList.toggle("hidden",div);$("divisionAnswer").classList.toggle("hidden",!div);
+ if(div){$("q").value="";$("r").value="";setTimeout(()=>$("q").focus(),0)}
+ else{$("ans").value="";setTimeout(()=>$("ans").focus(),0)}
+}
+function updateTime(){
+ const e=(Date.now()-startAt)/1000;
+ if(mode==="five"){
+   $("time").textContent=fmt(300-e);
+   if(e>=300)finish("timeout");
+ } else $("time").textContent=fmt(e);
+}
+function saveSingle(){
+ if(finished)return; const v=$("ans").value.trim(); if(v==="")return;
+ answers.push({i:idx,value:Number(v)}); idx++; if(idx>=100)finish("complete"); else show();
+}
+function saveDivision(){
+ if(finished)return; const q=$("q").value.trim(),r=$("r").value.trim(); if(q===""||r==="")return;
+ answers.push({i:idx,q:Number(q),r:Number(r)}); idx++; if(idx>=100)finish("complete"); else show();
+}
+function grade(){
+ let wrong=[],correct=0;
+ answers.forEach(a=>{
+   const p=questions[a.i]; let ok;
+   if(type==="div")ok=a.q===p.q&&a.r===p.r; else ok=a.value===p.answer;
+   if(ok)correct++; else wrong.push({p,a});
+ });
+ return {correct,wrong,attempted:answers.length};
+}
+function rankFor(correct,attempted,elapsed){
+ if(mode!=="five")return "";
+ if(attempted===100&&correct===100&&elapsed<=180)return "グランドマスター！";
+ if(attempted===100&&correct===100)return "計算マスター！";
+ if(correct>=95)return "1級 合格！";
+ if(correct>=90)return "2級 合格！";
+ if(correct>=80)return "3級 合格！";
+ if(correct>=70)return "4級 合格！";
+ if(correct>=60)return "5級 合格！";
+ if(correct>=50)return "6級 合格！";
+ if(correct>=40)return "7級 合格！";
+ if(correct>=30)return "8級 合格！";
+ if(correct>=20)return "9級 合格！";
+ if(correct>=10)return "10級 合格！";
+ return "また練習しよう！";
+}
+function finish(reason){
+ if(finished)return; finished=true; clearInterval(timer);
+ const elapsed=(Date.now()-startAt)/1000, g=grade(), name=$("name").value.trim();
+ $("play").classList.add("hidden");$("result").classList.remove("hidden");
+ $("resultTitle").textContent=`${name?name+"さんの ":""}${dateJP()}の記録`;
+ $("rank").textContent=rankFor(g.correct,g.attempted,elapsed);
+ $("scoreText").textContent=`正解 ${g.correct}問`;
+ let d=`${typeName(type)}　取り組んだ問題 ${g.attempted}問`;
+ if(g.attempted===100 || mode==="hundred") d+=`　時間 ${fmt(elapsed)}`;
+ if(reason==="timeout") d+="　（5分終了）";
+ $("detail").textContent=d;
+ if(g.wrong.length===0){
+   $("wrong").innerHTML=g.attempted?`<h3>まちがいはありません。</h3>`:"<h3>まだ問題に答えていません。</h3>";
+ }else{
+   let s=`<h3>まちがえた問題（${g.wrong.length}問）</h3>`;
+   g.wrong.forEach(w=>{
+     const p=w.p;
+     if(type==="div")s+=`<div>${p.a} ÷ ${p.b}　あなたの答え：${w.a.q} あまり ${w.a.r}　→　正しくは ${p.q} あまり ${p.r}</div>`;
+     else s+=`<div>${p.a} ${p.op} ${p.b}　あなたの答え：${w.a.value}　→　正しくは ${p.answer}</div>`;
+   }); $("wrong").innerHTML=s;
+ }
+}
+$("start").onclick=start;
+$("quit").onclick=()=>finish("quit");
+$("again").onclick=start;
+$("back").onclick=()=>{$("result").classList.add("hidden");$("setup").classList.remove("hidden")};
+$("ans").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();saveSingle()}};
+$("q").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();$("r").focus()}};
+$("r").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();saveDivision()}};
+$("name").value=localStorage.getItem("keisanName")||"";
+</script>
+</body></html>
