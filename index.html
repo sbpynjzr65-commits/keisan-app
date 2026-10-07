@@ -8,7 +8,7 @@
 :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;color:#172033;background:#f5f7fb}
 *{box-sizing:border-box}body{margin:0}.wrap{max-width:760px;margin:auto;padding:18px}
 .card{background:#fff;border-radius:18px;padding:20px;box-shadow:0 6px 24px #0001;margin-bottom:14px}
-h1{font-size:1.6rem;margin:.2em 0}.sub,.note{color:#667085}.hidden{display:none}
+h1{font-size:1.6rem;margin:.2em 0}.sub,.note{color:#667085}.hidden{display:none!important}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0}
 button,input{font:inherit}button{border:0;border-radius:14px;padding:15px 16px;background:#2457d6;color:#fff;font-weight:800;cursor:pointer}
 button.secondary{background:#e9eefb;color:#24324a}button.choice{font-size:1.2rem;min-height:70px}
@@ -56,7 +56,7 @@ input.name{width:100%;font-size:1.15rem;padding:13px;border:2px solid #cfd7e6;bo
 </div>
 <div class="bar"><i id="progress"></i></div>
 <div class="big" id="problem"></div>
-<div class="answer" id="singleAnswer"><input id="ans" type="text" inputmode="numeric" autocomplete="off" placeholder="答え"></div>
+<div class="answer" id="singleAnswer"><input id="ans" type="text" inputmode="numeric" autocomplete="off" placeholder=""></div>
 <div class="answer hidden" id="divisionAnswer">
 <input id="q" type="text" inputmode="numeric" autocomplete="off" placeholder="商"><b>あまり</b><input id="r" type="text" inputmode="numeric" autocomplete="off" placeholder="あまり">
 </div>
